@@ -12,9 +12,9 @@ use Rbac\Model\Model;
 use Rbac\Model\NodeModel;
 
 class RbacService {
-    public static $model_container = array();
+    public static $model_container  = array();
     public static $current_model;
-
+    public static $rbacCacheService = null;
 
     //用于检测用户权限的方法,并保存到Session中
     static function saveAccessList($authId = null) {
@@ -119,8 +119,11 @@ class RbacService {
      * @return array
      */
     static public function getAccessList($authId) {
-//        $rbacCacheService = new \Service\Cache\RbacCacheService($authId);
-//        $access = $rbacCacheService->getCacheByMethod($authId, 'GetAccessList');
+        if (method_exists(self::$rbacCacheService, 'getCacheByMethod')) {
+            $access = self::$rbacCacheService->getCacheByMethod($authId, 'GetAccessList');
+        } else {
+            $access = null;
+        }
         if (empty($access)) {
             self::init();
             // Db方式权限数据
@@ -186,7 +189,9 @@ class RbacService {
                     $access[strtoupper($appName)][strtoupper($moduleName)] = array_change_key_case($action, CASE_UPPER);
                 }
             }
-//            $rbacCacheService->addCacheByMethod($authId, $access, 'GetAccessList');
+            if (method_exists(self::$rbacCacheService, 'addCacheByMethod')) {
+                self::$rbacCacheService->addCacheByMethod($authId, $access, 'GetAccessList');
+            }
         }
 
         return $access;
@@ -194,8 +199,11 @@ class RbacService {
 
     // 读取模块所属的记录访问权限
     static public function getModuleAccessList($authId, $module) {
-//        $rbacCacheService = new \Service\Cache\RbacCacheService($authId);
-//        $access = $rbacCacheService->getCacheByMethod(array($authId, $module), 'GetModuleAccessList');
+        if (method_exists(self::$rbacCacheService, 'getCacheByMethod')) {
+            $access = self::$rbacCacheService->getCacheByMethod(array($authId, $module), 'GetModuleAccessList');
+        } else {
+            $access = null;
+        }
         if (empty($access)) {
             self::init();
             // Db方式
@@ -210,7 +218,9 @@ class RbacService {
             foreach ($rs as $node) {
                 $access[] = $node['node_id'];
             }
-//            $rbacCacheService->addCacheByMethod(array($authId ,$module), $access, 'GetModuleAccessList');
+            if (method_exists(self::$rbacCacheService, 'addCacheByMethod')) {
+                self::$rbacCacheService->addCacheByMethod(array($authId, $module), $access, 'GetModuleAccessList');
+            }
         }
 
         return $access;
@@ -222,8 +232,11 @@ class RbacService {
      * @return bool
      */
     static public function getUserLevel1List($authId) {
-//        $rbacCacheService = new \Service\Cache\RbacCacheService($authId);
-//        $level1 = $rbacCacheService->getCacheByMethod($authId, 'GetUserLevel1List');
+        if (method_exists(self::$rbacCacheService, 'getCacheByMethod')) {
+            $level1 = self::$rbacCacheService->getCacheByMethod($authId, 'GetUserLevel1List');
+        } else {
+            $level1 = null;
+        }
         if (empty($level1)) {
             self::init();
             $table = array('role' => ConfigService::get('RBAC_ROLE_TABLE'), 'user' => ConfigService::get('RBAC_USER_TABLE'), 'access' => ConfigService::get('RBAC_ACCESS_TABLE'), 'node' => ConfigService::get('RBAC_NODE_TABLE'));
@@ -243,15 +256,20 @@ class RbacService {
                     $level1[$node['id']] = $node;
                 }
             }
-//            $rbacCacheService->addCacheByMethod($authId, $level1, 'GetUserLevel1List');
+            if (method_exists(self::$rbacCacheService, 'addCacheByMethod')) {
+                self::$rbacCacheService->addCacheByMethod($authId, $level1, 'GetUserLevel1List');
+            }
         }
 
         return $level1;
     }
 
     static public function getUserLevel2List($authId, $pid = 0) {
-//        $rbacCacheService = new \Service\Cache\RbacCacheService($authId);
-//        $level2 = $rbacCacheService->getCacheByMethod(array($authId, $pid), 'GetUserLevel2List');
+        if (method_exists(self::$rbacCacheService, 'getCacheByMethod')) {
+            $level2 = self::$rbacCacheService->getCacheByMethod(array($authId, $pid), 'GetUserLevel2List');
+        } else {
+            $level2 = null;
+        }
         if (empty($level2)) {
             self::init();
             $user_id = intval($authId);
@@ -272,7 +290,9 @@ class RbacService {
                     $level2 = self::getNodeListByIds(array_keys($res));
                 }
             }
-//            $rbacCacheService->addCacheByMethod(array($authId, $pid), $level2, 'GetUserLevel2List');
+            if (method_exists(self::$rbacCacheService, 'addCacheByMethod')) {
+                self::$rbacCacheService->addCacheByMethod(array($authId, $pid), $level2, 'GetUserLevel2List');
+            }
         }
 
 
@@ -282,15 +302,20 @@ class RbacService {
     static public function getNodeIdByName($node_name = '') {
         $node_id = 0;
         if ($node_name) {
-//            $rbacCacheService = new \Service\Cache\RbacCacheService();
-//            $node_id = $rbacCacheService->getCacheByMethod($node_name, 'GetNodeIdByName');
+            if (method_exists(self::$rbacCacheService, 'getCacheByMethod')) {
+                $node_id = self::$rbacCacheService->getCacheByMethod($node_name, 'GetNodeIdByName');
+            } else {
+                $node_id = null;
+            }
             if (empty($node_id)) {
                 self::init();
                 $table = array('role' => ConfigService::get('RBAC_ROLE_TABLE'), 'user' => ConfigService::get('RBAC_USER_TABLE'), 'access' => ConfigService::get('RBAC_ACCESS_TABLE'), 'node' => ConfigService::get('RBAC_NODE_TABLE'));
                 $sql   = "SELECT id FROM {$table['node']} WHERE name = '{$node_name}'";
                 $res   = self::$current_model->selectBySql($sql);
                 isset($res[0]['id']) && ($node_id = $res[0]['id']);
-//                $rbacCacheService->addCacheByMethod($node_name, $node_id, 'GetNodeIdByName');
+                if (method_exists(self::$rbacCacheService, 'addCacheByMethod')) {
+                    self::$rbacCacheService->addCacheByMethod($node_name, $node_id, 'GetNodeIdByName');
+                }
             }
         }
         return $node_id;
@@ -299,8 +324,11 @@ class RbacService {
     static public function getNodeListByIds($node_ids = array()) {
         $node_list = array();
         if (is_array($node_ids) && !empty($node_ids)) {
-//            $rbacCacheService = new \Service\Cache\RbacCacheService();
-//            $node_list = $rbacCacheService->getCacheByMethod($node_ids, 'GetNodeListByIds');
+            if (method_exists(self::$rbacCacheService, 'getCacheByMethod')) {
+                $node_list = self::$rbacCacheService->getCacheByMethod($node_ids, 'GetNodeListByIds');
+            } else {
+                $node_list = null;
+            }
             if (empty($node_list)) {
                 self::init();
                 $ids       = implode(',', $node_ids);
@@ -308,8 +336,11 @@ class RbacService {
                 $sql       = "SELECT * FROM {$table['node']} WHERE id IN ( {$ids} ) ";
                 $node_list = self::$current_model->selectBySql($sql);
             }
-//            $rbacCacheService->addCacheByMethod($node_ids, $node_list, 'GetNodeListByIds');
+            if (method_exists(self::$rbacCacheService, 'addCacheByMethod')) {
+                self::$rbacCacheService->addCacheByMethod($node_ids, $node_list, 'GetNodeListByIds');
+            }
         }
+
         return $node_list;
     }
 
@@ -339,8 +370,11 @@ class RbacService {
         $authId  = intval($authId);
         $role_id = 0;
         if ($authId) {
-//            $rbacCacheService = new \Service\Cache\RbacCacheService($authId);
-//            $role_id = $rbacCacheService->getCacheByMethod($authId, 'GetUserRoleId');
+            if (method_exists(self::$rbacCacheService, 'getCacheByMethod')) {
+                $role_id = self::$rbacCacheService->getCacheByMethod($authId, 'GetUserRoleId');
+            } else {
+                $role_id = null;
+            }
             if (empty($role_id)) {
                 self::init();
                 $table = array('role' => ConfigService::get('RBAC_ROLE_TABLE'), 'user' => ConfigService::get('RBAC_USER_TABLE'), 'access' => ConfigService::get('RBAC_ACCESS_TABLE'), 'node' => ConfigService::get('RBAC_NODE_TABLE'));
@@ -348,7 +382,9 @@ class RbacService {
                 $res   = self::$current_model->selectBySql($sql);
                 isset($res[0]['role_id']) && ($role_id = $res[0]['role_id']);
             }
-//            $rbacCacheService->addCacheByMethod($authId, $role_id, 'GetUserRoleId');
+            if (method_exists(self::$rbacCacheService, 'addCacheByMethod')) {
+                self::$rbacCacheService->addCacheByMethod($authId, $role_id, 'GetUserRoleId');
+            }
         }
         return $role_id;
     }
@@ -362,8 +398,11 @@ class RbacService {
         $node_ids = array();
         $role_id  = intval($role_id);
         if ($role_id) {
-//            $rbacCacheService = new \Service\Cache\RbacCacheService();
-//            $node_ids = $rbacCacheService->getCacheByMethod($role_id, 'GetRoleAccessNodeIds');
+            if (method_exists(self::$rbacCacheService, 'getCacheByMethod')) {
+                $node_ids = self::$rbacCacheService->getCacheByMethod($role_id, 'GetRoleAccessNodeIds');
+            } else {
+                $node_ids = null;
+            }
             if (empty($node_ids)) {
                 self::init();
                 $table     = array('role' => ConfigService::get('RBAC_ROLE_TABLE'), 'user' => ConfigService::get('RBAC_USER_TABLE'), 'access' => ConfigService::get('RBAC_ACCESS_TABLE'), 'node' => ConfigService::get('RBAC_NODE_TABLE'));
@@ -375,7 +414,9 @@ class RbacService {
                     }
                 }
             }
-//            $rbacCacheService->addCacheByMethod($role_id, $node_ids, 'GetRoleAccessNodeIds');
+            if (method_exists(self::$rbacCacheService, 'addCacheByMethod')) {
+                self::$rbacCacheService->addCacheByMethod($role_id, $node_ids, 'GetRoleAccessNodeIds');
+            }
         }
         return $node_ids;
     }
@@ -417,11 +458,15 @@ class RbacService {
      * 检测和设置当前查询的MODEL
      * @param array $model_setting
      * @param array $config_setting
+     * @param null  $cacheService
      */
-    static function init($model_setting = [], $config_setting = []) {
+    static function init($model_setting = [], $config_setting = [], $cacheService = null) {
         ConfigService::init($config_setting);
-        if(!isset($model_setting['table_name']) || empty($model_setting['table_name'])){
+        if (!isset($model_setting['table_name']) || empty($model_setting['table_name'])) {
             $model_setting['table_name'] = ConfigService::get('RBAC_NODE_TABLE');
+        }
+        if (is_object($cacheService) && null == self::$rbacCacheService) {
+            self::$rbacCacheService = $cacheService;
         }
         if (!self::$current_model instanceof Model) {
             self::$current_model = new NodeModel($model_setting);
