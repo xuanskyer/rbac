@@ -44,7 +44,10 @@ $rbac_config = [
     'RBAC_ACCESS_TABLE' => 'rbac_access',
     'RBAC_NODE_TABLE'   => 'rbac_node',
 ];
-RbacService::init($db_config, $rbac_config);
+
+//$cacheService = new RbacCacheService();   //如果需要缓存，则传入实例化后的第三方缓存服务对象
+
+RbacService::init($db_config, $rbac_config, $cacheService);
 ```
 
 * enjoy~ :)
