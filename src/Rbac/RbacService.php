@@ -455,7 +455,7 @@ class RbacService {
     }
 
     /**
-     * 检测和设置当前查询的MODEL
+     * 初始化RBAC服务
      * @param array $model_setting
      * @param array $config_setting
      * @param null  $cacheService
