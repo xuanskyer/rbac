@@ -48,3 +48,5 @@ RbacService::init($db_config, $rbac_config);
 ```
 
 * enjoy~ :)
+
+> RBAC对应数据表： `src/data/rbac.sql`
