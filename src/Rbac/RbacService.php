@@ -420,6 +420,9 @@ class RbacService {
      */
     static function init($model_setting = [], $config_setting = []) {
         ConfigService::init($config_setting);
+        if(!isset($model_setting['table_name']) || empty($model_setting['table_name'])){
+            $model_setting['table_name'] = ConfigService::get('RBAC_NODE_TABLE');
+        }
         if (!self::$current_model instanceof Model) {
             self::$current_model = new NodeModel($model_setting);
         }
