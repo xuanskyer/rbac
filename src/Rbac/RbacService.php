@@ -82,7 +82,7 @@ class RbacService {
         //检查是否需要认证
         $action_name = in_array($action_name, array('operate')) ? strtolower($get_params['op']) : $action_name;
 
-        if (self::checkAccess()) {
+        if (self::checkAccess($controller_name, $action_name)) {
             //存在认证识别号，则进行进一步的访问决策
             $accessGuid = md5($appName . $controller_name . $action_name);
             if ($_SESSION[ConfigService::get('USER_AUTH_KEY')]['id'] != ConfigService::get('ADMIN_USER_ID') && empty($_SESSION[ConfigService::get('ADMIN_AUTH_KEY')])) {
